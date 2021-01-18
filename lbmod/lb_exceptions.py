@@ -6,3 +6,6 @@ class DuplicateRecordError(LBError):
 
 class NoRecordFoundError(LBError):
     pass
+
+class SetProductQuantityError(LBError):
+    pass

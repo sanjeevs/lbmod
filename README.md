@@ -5,7 +5,6 @@ Must install MySql version locally and update the configuration file below.
 ```
 mysql -V
 mysql  Ver 14.14 Distrib 5.7.32, for Linux (x86_64) using  EditLine wrapper
-
 cat sql/database_setup.sh
 ```
 ## Jan16,2020: Added Products table

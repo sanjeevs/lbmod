@@ -35,6 +35,7 @@ class ProductMgr:
         stmt = "INSERT INTO %s (%s) VALUES (%s)" % ('products', columns, values)
         self.cursor.execute(stmt)
 
+        # Extract the product_id
         stmt = ("""
             SELECT product_id from products where sku = %s
         """)
@@ -52,6 +53,13 @@ class ProductMgr:
         p = Product(**args)
         return p
 
+    def find(self, product_id):
+        """Return the matching row using primary key."""
+        stmt = "SELECT * from products where product_id=%s"
+        self.cursor.execute(stmt, (product_id,))
+        row = self.cursor.fetchall()
+        assert(len(row) == 1)
+        return Product(**row[0])
 
     def find_by_sku(self, sku):
         row_headers = [d[0] for d in self.cursor.description]
@@ -68,8 +76,7 @@ class ProductMgr:
             return None 
 
         return Product(**rows[0])
-        
-        
+           
 
     def find_all(self):
         """Return all products."""
@@ -79,13 +86,40 @@ class ProductMgr:
         self.cursor.execute(stmt)
         records = self.cursor.fetchall()
         
-        row_headers = [x[0] for x in self.cursor.products]
-        dicts = []
-        for row in records:
-            dicts.append(dict(zip(row_headers, row)))
-
         products = []
-        for d in dicts:
+        for d in records:
             products.append(Product(**d))
 
         return products
+
+    def save(self, product):
+        """Save the contents of the product to database."""
+        product.last_updated = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        pairs = []
+        for col in product.fields:
+            value = getattr(product, col)
+            pairs.append(f"{col} = '{value}'")
+
+        print("PAIRS", pairs)
+        if len(pairs) == 1:
+            stmt = f"UPDATE products SET {pairs[0]};"
+        else:
+            stmt = "UPDATE products SET"
+            for i in range(len(pairs) -1):
+                stmt += f" {pairs[i]},"
+            stmt += f" {pairs[-1]};"
+        print("Update:", stmt)
+        self.cursor.execute(stmt)
+
+    def decr_amount(self, product, delta):
+        """Decrement the amount. If it becomes less than 0
+           then throw exception.
+        """
+        stmt = ("""
+            UPDATE products 
+            SET amount = amount - %s
+            WHERE product_id = %s
+            and amount > %s 
+        """)
+        self.cursor.execute(stmt, (delta, product.product_id, delta))
+        product.amount = self.get_amount(product)
