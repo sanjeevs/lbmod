@@ -3,7 +3,7 @@ CRUD operation on the products table.
 """
 
 from lbmod.product import Product
-from lbmod.lb_exceptions import DuplicateRecordError
+from lbmod.lb_exceptions import DuplicateRecordError, SetProductQuantityError
 import datetime
 
 class ProductMgr:
@@ -100,7 +100,6 @@ class ProductMgr:
             value = getattr(product, col)
             pairs.append(f"{col} = '{value}'")
 
-        print("PAIRS", pairs)
         if len(pairs) == 1:
             stmt = f"UPDATE products SET {pairs[0]};"
         else:
@@ -108,18 +107,25 @@ class ProductMgr:
             for i in range(len(pairs) -1):
                 stmt += f" {pairs[i]},"
             stmt += f" {pairs[-1]};"
-        print("Update:", stmt)
+       
         self.cursor.execute(stmt)
 
-    def decr_amount(self, product, delta):
-        """Decrement the amount. If it becomes less than 0
+
+    def decr_quantity(self, product, delta):
+        """Decrement the qty. If it becomes less than 0
            then throw exception.
         """
         stmt = ("""
             UPDATE products 
-            SET amount = amount - %s
+            SET quantity = quantity - %s
             WHERE product_id = %s
-            and amount > %s 
+            and quantity >= %s
         """)
         self.cursor.execute(stmt, (delta, product.product_id, delta))
-        product.amount = self.get_amount(product)
+        if self.cursor.rowcount != 1:
+            raise SetProductQuantityError("Unable to change the quantity field")
+
+        stmt= ("SELECT quantity from products WHERE product_id=%s")
+        self.cursor.execute(stmt, (product.product_id,))
+        row = self.cursor.fetchone()
+        product._quantity = row['quantity']

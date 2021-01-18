@@ -1,5 +1,6 @@
 
 from lbmod.product_mgr import ProductMgr
+from lbmod.lb_exceptions import SetProductQuantityError
 
 def test_create_default_product(cursor):
     dict = {'sku' : 'sku1', 'upc' : 'upc1'}
