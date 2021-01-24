@@ -35,21 +35,7 @@ class ProductMgr:
         stmt = "INSERT INTO %s (%s) VALUES (%s)" % ('products', columns, values)
         self.cursor.execute(stmt)
 
-        # Extract the product_id
-        stmt = ("""
-            SELECT product_id from products where sku = %s
-        """)
-
-        self.cursor.execute(stmt, (sku,))
-        rows = self.cursor.fetchall()
-        
-        if len(rows) > 1:
-            raise DuplicateRecordError("Found multiple records with same sku")
-        if len(rows) == 0:
-            raise NoRecordFoundError("OOPS! inserted a record but no trace found")
-
-        
-        args['product_id'] = rows[0]['product_id']
+        args['product_id'] = self.cursor.lastrowid
         p = Product(**args)
         return p
 
@@ -62,7 +48,6 @@ class ProductMgr:
         return Product(**row[0])
 
     def find_by_sku(self, sku):
-        row_headers = [d[0] for d in self.cursor.description]
         stmt = ("""
             SELECT * from products where sku = %s
         """)

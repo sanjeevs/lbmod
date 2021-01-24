@@ -33,3 +33,29 @@ CREATE TABLE IF NOT EXISTS products(
 	PRIMARY KEY (`product_id`)
 );
 
+DROP TABLE IF EXISTS customers;
+CREATE TABLE IF NOT EXISTS customers (
+  `customer_id` INT NOT NULL AUTO_INCREMENT,
+  `company_name` VARCHAR(45) NOT NULL,
+  `full_name` VARCHAR(45) NULL,
+  `phone_number` VARCHAR(45) NULL,
+  PRIMARY KEY (`customer_id`),
+  UNIQUE INDEX `company_name_UNIQUE` (`company_name` ASC));
+
+DROP TABLE IF EXISTS addresses;
+CREATE TABLE IF NOT EXISTS addresses (
+  `address_id` INT NOT NULL AUTO_INCREMENT,
+  `contact_person` VARCHAR(45) NULL,
+  `street_address` VARCHAR(45) NULL,
+  `city` VARCHAR(45) NULL,
+  `state` VARCHAR(45) NULL,
+  `zip_code` VARCHAR(45) NULL,
+  `phone_number` VARCHAR(45) NULL,
+  `customer_id` INT NOT NULL,
+  PRIMARY KEY (`address_id`, `customer_id`),
+  INDEX `fk_addresses_customers1_idx` (`customer_id` ASC),
+  CONSTRAINT `fk_addresses_customers1`
+    FOREIGN KEY (`customer_id`)
+    REFERENCES customers (`customer_id`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE);
